@@ -52,10 +52,10 @@ data:
   kafka.saslMechanism: {{ .Values.kafka.saslMechanism }}
   kafka.saslJaasConfig: {{ .Values.kafka.saslJaasConfig }}
   database.kind: {{ .Values.database.kind }}
-  database.host: {{ .Values.database.host }}
-  database.port: "{{ .Values.database.port }}"
-  database.db: {{ .Values.database.db }}
-  database.ssl: "{{ .Values.database.ssl }}"
+  database.host: {{ include "stocktrader.database.host" . }}
+  database.port: "{{ include "stocktrader.database.port" . }}"
+  database.db: {{ include "stocktrader.database.name" . }}
+  database.ssl: "{{ include "stocktrader.database.ssl" . }}"
   mq.host: {{ .Values.mq.host }}
   mq.kind: {{ .Values.mq.kind }}
   mq.port: "{{ .Values.mq.port }}"
@@ -71,12 +71,17 @@ data:
   ldap.realm: {{ .Values.ldap.realm }}
   jwt.issuer: {{ .Values.jwt.issuer }}
   jwt.audience: {{ .Values.jwt.audience }}
-  redis.cacheInterval: "{{ .Values.redis.cacheInterval }}"
-  mongo.ip: {{ .Values.mongo.ip }}
+{{- if eq .Values.redis.type "internal" }}
+  redis.cacheInterval: "{{ .Values.redis.cacheInterval | default 60 }}"
+{{- else }}
+  redis.cacheInterval: "{{ .Values.redis.external.cacheInterval }}"
+{{- end }}
+  mongo.ip: {{ include "stocktrader.mongodb.host" . }}
   mongo.port: "{{ .Values.mongo.port }}"
   mongo.database: {{ .Values.mongo.database }}
   mongo.authDB: {{ .Values.mongo.authDB }}
-  mongo.connectionString: {{ .Values.mongo.connectionString }}
+  mongo.connectionString: {{ include "stocktrader.mongodb.connectionString" . }}
+  kafka.address: {{ include "stocktrader.kafka.address" . }}
   s3.bucket: {{ .Values.s3.bucket }}
   s3.location: {{ .Values.s3.location }}
   s3.endpointUrl: {{ .Values.s3.endpointUrl }}

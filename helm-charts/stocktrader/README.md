@@ -8,25 +8,109 @@ is used instead; that operator wraps this helm chart.
 
 ## Prerequisites
 
-The user must install and configure (or point to existing installations of) the following dependencies:
-* A relational (JDBC-compliant) database, such as IBM DB2 or PostgreSQL
+### Database Options
 
-The following dependencies are optional:
-* An MQ product, such as IBM MQ Series, or Apache ActiveMQ (enables notifications)
-* IBM Operational Decision Manager (enables loyalty level determination - can use a serverless function instead)
-* A CouchDB database, such as IBM Cloudant (enables account metadata)
-* A Kafka service, such as IBM Event Streams (enables Trade History and its return-on-investment calculation)
-* Mongo DB (enables Trade History and its return-on-investment calculation)
-* Redis (enables stock quote caching)
+The Stock Trader application requires a relational (JDBC-compliant) database. You have two options:
 
-The [stocktrader-helm project](../README.md) provides instructions for setting up these dependencies.
+#### Option 1: Internal PostgreSQL (Recommended for Development)
+The chart includes PostgreSQL as a subchart dependency. Simply set `postgresql.enabled: true` in your values file.
+The chart will automatically configure the connection parameters.
+
+#### Option 2: External Database
+You can use your own database instance (DB2, PostgreSQL, MySQL, etc.) by:
+- Setting `database.type: external` 
+- Configuring the `database.external.*` values with your connection details
+
+### Optional Dependencies
+
+The following dependencies are optional and can be enabled as either internal subcharts or external services:
+
+* **Redis** - Enables stock quote caching for improved performance
+  - Internal: Set `redis.enabled: true`
+  - External: Configure `redis.urlWithCredentials`
+  
+* **MongoDB** - Enables Trade History and return-on-investment calculations
+  - Internal: Set `mongodb.enabled: true`
+  - External: Configure `mongo.connectionString`
+  
+* **Kafka** - Enables event streaming and CQRS patterns
+  - Internal: Set `kafka.enabled: true`
+  - External: Configure `kafka.address` (e.g., IBM Event Streams)
+  
+* **IBM MQ or ActiveMQ** - Enables notifications (external only)
+  - Configure `mq.host`, `mq.port`, etc.
+  
+* **IBM Operational Decision Manager** - Enables loyalty level determination (external only)
+  - Configure `odm.url`
+  
+* **IBM Cloudant** - Enables account metadata storage (external only)
+  - Configure `cloudant.url`, `cloudant.host`, etc.
 
 ## Configuration
 
-The following table lists the configurable parameters of this chart and their default values.
-The parameters allow you to:
-* change the image of any microservice from the one provided by IBM to one that you build (e.g. if you want to try to modify a service)
-* enable the deployment of optional microservices (tradr, account, messaging, notification-slack, notification-twitter, trade-history, collector)
+The following table lists the main configurable parameters of this chart:
+
+### Database Configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `database.type` | `internal` to use subchart, `external` for your own DB | `internal` |
+| `database.kind` | Database type (PostgreSQL, DB2, MySQL, etc.) | `PostgreSQL` |
+| `database.external.host` | External database hostname | `db2inst1` |
+| `database.external.port` | External database port | `50000` |
+| `database.external.id` | External database username | `db2inst1` |
+| `database.external.password` | External database password | `db2inst1` |
+| `database.external.db` | External database name | `trader` |
+| `database.external.ssl` | Enable SSL for external database | `false` |
+
+### PostgreSQL Subchart Configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `postgresql.enabled` | Enable PostgreSQL subchart | `true` |
+| `postgresql.auth.username` | PostgreSQL username | `stocktrader` |
+| `postgresql.auth.password` | PostgreSQL password | `changeme` |
+| `postgresql.auth.database` | PostgreSQL database name | `trader` |
+| `postgresql.primary.persistence.enabled` | Enable persistent storage | `true` |
+| `postgresql.primary.persistence.size` | Storage size | `2Gi` |
+
+### Redis Subchart Configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `redis.enabled` | Enable Redis subchart | `false` |
+| `redis.cacheInterval` | Cache interval in seconds | `60` |
+| `redis.architecture` | Redis architecture (standalone/replication) | `standalone` |
+| `redis.auth.enabled` | Enable Redis authentication | `false` |
+| `redis.master.persistence.enabled` | Enable persistent storage | `true` |
+| `redis.master.persistence.size` | Storage size | `1Gi` |
+
+### MongoDB Subchart Configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `mongodb.enabled` | Enable MongoDB subchart | `false` |
+| `mongodb.auth.username` | MongoDB username | `stocktrader` |
+| `mongodb.auth.password` | MongoDB password | `changeme` |
+| `mongodb.auth.database` | MongoDB database name | `tradehistory` |
+| `mongodb.persistence.enabled` | Enable persistent storage | `true` |
+| `mongodb.persistence.size` | Storage size | `2Gi` |
+
+### Kafka Subchart Configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `kafka.enabled` | Enable Kafka subchart | `false` |
+| `kafka.brokerTopic` | Broker events topic | `broker` |
+| `kafka.portfolioTopic` | Portfolio events topic | `portfolio` |
+| `kafka.accountTopic` | Account events topic | `account` |
+| `kafka.cashAccountTopic` | Cash account events topic | `cash-account` |
+| `kafka.historyTopic` | Trade history topic | `history` |
+| `kafka.controller.replicaCount` | Number of Kafka controllers | `1` |
+| `kafka.persistence.enabled` | Enable persistent storage | `true` |
+| `kafka.persistence.size` | Storage size | `2Gi` |
+
+### Microservice Configuration
 
 | Parameter                           | Description                                         | Default                                                                         |
 | ----------------------------------- | ----------------------------------------------------| --------------------------------------------------------------------------------|

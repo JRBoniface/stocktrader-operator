@@ -41,13 +41,16 @@ global:
   specifyCerts: false
   certs: <your SSL certificates>
 database:
-  kind: db2
-  host: db2trader1-ibm-db2oltp-dev
-  port: 50000
-  id: db2inst1
-  password: db2inst1
-  db: trader
-  ssl: false
+  # Type of database deployment: internal (managed by chart) or external (pre-existing)  
+  type: internal
+  kind: postgresql
+  external:
+    host: db2inst1
+    port: 50000
+    id: db2inst1
+    password: db2inst1
+    db: trader
+    ssl: false
 broker:
   replicas: 1
   autoscale: false
@@ -210,8 +213,50 @@ mq:
   channel: DEV.APP.SVRCONN
   url: <your mq url>
 redis:
-  urlWithCredentials: redis://<your credentials>@redistrader1-ibm-redis-ha-dev-master-svc:6379
+  # Type of Redis deployment: internal (managed by chart) or external (pre-existing)  
+  type: internal
+  enabled: true
+  # Bitnami Redis subchart configuration
+  # https://github.com/bitnami/charts/tree/main/bitnami/redis
+  architecture: standalone
+  image:
+    registry: docker.io
+    # Bitnami Redis legacy image repository used for Redis 7
+    # https://community.broadcom.com/blogs/beltran-rueda-borrego/2025/08/18/how-to-prepare-for-the-bitnami-changes-coming-soon
+    repository: bitnamilegacy/redis
+    tag: "8.2.1-debian-12-r0"
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: true
+    password: changeme
+    existingSecret: ""
+    existingSecretPasswordKey: redis-password
+  master:
+    service:
+      ports:
+        redis: 6379
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  replica:
+    replicaCount: 0  # Set to 0 for standalone, increase for master-replica setup
+  metrics:
+    enabled: false
+  networkPolicy:
+    enabled: false
   cacheInterval: 60
+  # Configuration for external Redis instance
+  external:
+    enabled: false
+    # NOTE: Usually this is defined granularly instead of a full URL
+    urlWithCredentials: redis://<your credentials>@<your redis host>:6379
 openwhisk:
   id: <your id>
   password: <your password>
@@ -222,6 +267,7 @@ twitter:
   accessToken: <your access token>
   accessTokenSecret: <your access token secret>
 kafka:
+  enabled: false
   kind: ibm-event-streams
   address: <your Kafka proxy service>:30000
   brokerTopic: broker
@@ -233,6 +279,16 @@ kafka:
   historyTopic: history
   user: token
   apiKey: <your API key>
+  # Bitnami Kafka subchart configuration
+  # https://github.com/bitnami/charts/tree/main/bitnami/kafka
+  listeners:
+    client:
+      protocol: PLAINTEXT
+  controller:
+    replicaCount: 1
+  persistence:
+    enabled: true
+    size: 2Gi
 cloudant:
   url: <your Cloudant URL>
   host: <your Cloudant Hostname/IP>
@@ -241,6 +297,7 @@ cloudant:
   password: <your Cloudant Password>
   database: <your Cloudant Account database name>
 mongo:
+  enabled: false
   ip: <your Mongo IP>
   port: 27017
   user: <your Mongo user>
@@ -248,6 +305,23 @@ mongo:
   database: <your Mongo database>
   connectionString: <your Mongo connection string>
   authDB: <your Mongo auth database>
+
+# MongoDB subchart configuration (for trade history feature)
+# https://github.com/bitnami/charts/tree/main/bitnami/mongodb
+mongodb:
+  enabled: true
+  auth:
+    enabled: true
+    rootPassword: changeme
+    username: stocktrader
+    password: changeme
+    database: tradehistory
+  service:
+    ports:
+      mongodb: 27017
+  persistence:
+    enabled: true
+    size: 2Gi
 s3:
   enabled: false
   bucket: stock-trader
@@ -255,3 +329,66 @@ s3:
   endpointUrl: <your S3 endpoint URL>
   resourceInstanceId: <your S3 CRN>
   apiKey: <your S3 API Key>
+
+# PostgreSQL subchart configuration
+# https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+postgresql:
+  enabled: true
+  auth:
+    username: stocktrader
+    password: changeme
+    database: trader
+  primary:
+    containerPorts:
+      postgresql: 5432
+    service:
+      ports:
+        postgresql: 5432
+    persistence:
+      enabled: true
+      size: 2Gi
+    initdb:
+      scripts:
+        create-schema-and-tables.sql: |
+          -- Stock Trader Database Schema-
+          CREATE TABLE IF NOT EXISTS Portfolio(
+            owner VARCHAR(32) NOT NULL, 
+            total DOUBLE PRECISION, 
+            accountID VARCHAR(64), 
+            PRIMARY KEY(owner)
+          );
+          
+          CREATE TABLE IF NOT EXISTS Stock(
+            owner VARCHAR(32) NOT NULL, 
+            symbol VARCHAR(8) NOT NULL, 
+            shares INTEGER, 
+            price DOUBLE PRECISION, 
+            total DOUBLE PRECISION, 
+            dateQuoted VARCHAR(10), 
+            commission DOUBLE PRECISION, 
+            FOREIGN KEY (owner) REFERENCES Portfolio(owner) ON DELETE CASCADE, 
+            PRIMARY KEY(owner, symbol)
+          );
+          
+          CREATE TABLE IF NOT EXISTS cashaccount(
+            owner VARCHAR(32) NOT NULL, 
+            balance DOUBLE PRECISION, 
+            currency VARCHAR(8), 
+            PRIMARY KEY(owner)
+          );
+          
+          -- Add currency constraint if it doesn't exist
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_constraint WHERE conname = 'allowed_currencies'
+            ) THEN
+              ALTER TABLE cashaccount ADD CONSTRAINT allowed_currencies 
+              CHECK (currency IN (
+                'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 
+                'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 
+                'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 
+                'RON', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR'
+              ));
+            END IF;
+          END$$; 

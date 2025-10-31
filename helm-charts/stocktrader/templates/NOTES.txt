@@ -9,3 +9,88 @@ The Java web application is available at
 The Node.js web application is available at
   https://<route-url>>/tradr
 {{- end }}
+
+Database Configuration:
+-----------------------
+{{- if eq .Values.database.type "internal" }}
+{{- if .Values.postgresql.enabled }}
+✓ PostgreSQL database deployed as subchart
+  Host: {{ include "stocktrader.database.host" . }}
+  Port: {{ include "stocktrader.database.port" . }}
+  Database: {{ include "stocktrader.database.name" . }}
+  Username: {{ include "stocktrader.database.username" . }}
+{{- else }}
+⚠ Database type is 'internal' but PostgreSQL subchart is disabled
+  Set postgresql.enabled=true or use database.type=external
+{{- end }}
+{{- else }}
+✓ Using external database
+  Kind: {{ .Values.database.kind }}
+  Host: {{ .Values.database.external.host }}
+  Port: {{ .Values.database.external.port }}
+  Database: {{ .Values.database.external.db }}
+{{- end }}
+
+Optional Services:
+------------------
+{{- if .Values.redis.enabled }}
+✓ Redis cache enabled (subchart)
+  URL: {{ include "stocktrader.redis.url" . }}
+{{- else }}
+  Redis cache: disabled (stock quotes won't be cached)
+{{- end }}
+
+{{- if .Values.mongodb.enabled }}
+✓ MongoDB enabled (subchart) for trade history
+  Host: {{ include "stocktrader.mongodb.host" . }}
+{{- else if .Values.mongo.connectionString }}
+✓ MongoDB configured (external) for trade history
+  Connection: {{ .Values.mongo.connectionString }}
+{{- else }}
+  MongoDB: disabled (trade history feature unavailable)
+{{- end }}
+
+{{- if .Values.kafka.enabled }}
+✓ Kafka enabled (subchart) for event streaming
+  Address: {{ include "stocktrader.kafka.address" . }}
+{{- else if .Values.kafka.address }}
+✓ Kafka configured (external) for event streaming
+  Address: {{ .Values.kafka.address }}
+{{- else }}
+  Kafka: disabled (event streaming and CQRS unavailable)
+{{- end }}
+
+Microservices Enabled:
+----------------------
+  Broker: ✓
+  Portfolio: ✓
+  Stock Quote: ✓
+{{- if .Values.trader.enabled }}
+  Trader (Java UI): ✓
+{{- end }}
+{{- if .Values.tradr.enabled }}
+  Tradr (Node.js UI): ✓
+{{- end }}
+{{- if .Values.cashAccount.enabled }}
+  Cash Account: ✓
+{{- end }}
+{{- if .Values.account.enabled }}
+  Account: ✓
+{{- end }}
+{{- if .Values.messaging.enabled }}
+  Messaging: ✓
+{{- end }}
+{{- if .Values.notificationSlack.enabled }}
+  Notification (Slack): ✓
+{{- end }}
+{{- if .Values.notificationTwitter.enabled }}
+  Notification (Twitter): ✓
+{{- end }}
+{{- if .Values.tradeHistory.enabled }}
+  Trade History: ✓
+{{- end }}
+{{- if .Values.looper.enabled }}
+  Looper: ✓
+{{- end }}
+
+For more information, see the README.md file.
