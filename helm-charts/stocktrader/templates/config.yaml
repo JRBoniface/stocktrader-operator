@@ -79,17 +79,12 @@ data:
   ldap.realm: {{ .Values.ldap.realm }}
   jwt.issuer: {{ .Values.jwt.issuer }}
   jwt.audience: {{ .Values.jwt.audience }}
-{{- if eq .Values.redis.type "internal" }}
-  redis.cacheInterval: "{{ .Values.redis.cacheInterval | default 60 }}"
-{{- else }}
-  redis.cacheInterval: "{{ .Values.redis.external.cacheInterval }}"
-{{- end }}
-  mongo.ip: {{ include "stocktrader.mongodb.host" . }}
+  redis.cacheInterval: "{{ .Values.redis.cacheInterval }}"
+  mongo.ip: {{ .Values.mongo.ip }}
   mongo.port: "{{ .Values.mongo.port }}"
   mongo.database: {{ .Values.mongo.database }}
   mongo.authDB: {{ .Values.mongo.authDB }}
-  mongo.connectionString: {{ include "stocktrader.mongodb.connectionString" . }}
-  kafka.address: {{ include "stocktrader.kafka.address" . }}
+  mongo.connectionString: {{ .Values.mongo.connectionString }}
   s3.bucket: {{ .Values.s3.bucket }}
   s3.location: {{ .Values.s3.location }}
   s3.endpointUrl: {{ .Values.s3.endpointUrl }}
