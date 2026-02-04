@@ -71,19 +71,6 @@ global:
   pullSecretName: <your pull secret>
   specifyCerts: false
   certs: <your SSL certificates>
-database:
-  type: internal
-  kind: postgres
-  id: stocktrader
-  password: changeme
-  external:
-    secretName: <your secret name>
-    host: <your database host>
-    port: 5432
-    db: trader
-    id: <your database user>
-    password: <your database password>
-    ssl: false
 broker:
   image:
     repository: stocktraderotel.azurecr.io/broker
@@ -235,11 +222,26 @@ s3:
   resourceInstanceId: <your S3 CRN>
   apiKey: <your S3 API Key>
 
-
+# PostgreSQL database configuration
+# Options are 'internal' to use the bundled PostgreSQL subchart, or 'external' to use an external database
+database:
+  type: external
+  kind: postgres
+  id: stocktrader
+  password: changeme
+  external:
+    secretName: <your secret name>
+    host: remote-stocktrader-jonathan.postgres.database.azure.com
+    port: 5432
+    db: trader
+    id: stocktrader
+    password: ChangeMe!
+    # Azure requires this to be set to true
+    ssl: true
 # PostgreSQL subchart configuration
 # https://github.com/bitnami/charts/tree/main/bitnami/postgresql
 postgresql:
-  enabled: true
+  enabled: false
   auth:
   # NOTE: Inject via secret in future releases
     username: stocktrader

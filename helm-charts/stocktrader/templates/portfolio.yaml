@@ -221,7 +221,7 @@ spec:
           httpGet:
             path: /health/started
             port: 9080
-          initialDelaySeconds: 180
+          initialDelaySeconds: 60
           periodSeconds: 30
           failureThreshold: 5
         readinessProbe:
@@ -251,9 +251,16 @@ spec:
           mountPath: /opt/ol/wlp/usr/servers/defaultServer/includes/postgres.xml
           subPath: postgres.xml
       volumes:
+{{- if eq .Values.database.type "internal" }}
       - name: postgres-config
         configMap:
-          name: {{ .Release.Name }}-portfolio-postgres-config
+          name: {{ .Release.Name }}-portfolio-postgres-internal-config
+{{- end }}
+{{- if eq .Values.database.type "external" }}
+      - name: postgres-config
+        configMap:
+          name: {{ .Release.Name }}-portfolio-postgres-external-config
+{{- end }}
 {{- if .Values.portfolio.autoscale }}
 ---
 #Deploy the autoscaler
