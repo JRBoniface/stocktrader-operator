@@ -225,7 +225,7 @@ s3:
 # PostgreSQL database configuration
 # Options are 'internal' to use the bundled PostgreSQL subchart, or 'external' to use an external database
 database:
-  type: external
+  type: internal
   kind: postgres
   id: stocktrader
   password: changeme
@@ -241,7 +241,7 @@ database:
 # PostgreSQL subchart configuration
 # https://github.com/bitnami/charts/tree/main/bitnami/postgresql
 postgresql:
-  enabled: false
+  enabled: true
   auth:
   # NOTE: Inject via secret in future releases
     username: stocktrader

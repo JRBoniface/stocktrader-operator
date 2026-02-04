@@ -251,16 +251,9 @@ spec:
           mountPath: /opt/ol/wlp/usr/servers/defaultServer/includes/postgres.xml
           subPath: postgres.xml
       volumes:
-{{- if eq .Values.database.type "internal" }}
       - name: postgres-config
         configMap:
-          name: {{ .Release.Name }}-portfolio-postgres-internal-config
-{{- end }}
-{{- if eq .Values.database.type "external" }}
-      - name: postgres-config
-        configMap:
-          name: {{ .Release.Name }}-portfolio-postgres-external-config
-{{- end }}
+          name: {{ .Release.Name }}-portfolio-postgres-config
 {{- if .Values.portfolio.autoscale }}
 ---
 #Deploy the autoscaler
