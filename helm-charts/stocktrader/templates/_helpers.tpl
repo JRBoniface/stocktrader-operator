@@ -142,4 +142,54 @@ Get database SSL setting - uses subchart defaults if internal, otherwise externa
 {{- end -}}
 {{- end -}}
 
+{{/*
+Redis helper templates - support both internal subcharts and external Redis instances
+*/}}
 
+{{/*
+Get Redis host - uses subchart if internal, otherwise external config
+*/}}
+{{- define "stocktrader.redis.host" -}}
+{{- if eq .Values.redis.type "internal" -}}
+{{- printf "%s-redis-master" .Release.Name -}}
+{{- else -}}
+{{- .Values.redis.external.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get Redis port - uses subchart defaults if internal, otherwise external config
+*/}}
+{{- define "stocktrader.redis.port" -}}
+{{- if eq .Values.redis.type "internal" -}}
+{{- .Values.redis.master.service.ports.redis | default 6379 -}}
+{{- else -}}
+{{- .Values.redis.external.port -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get Redis password - uses subchart config if internal, otherwise external config
+*/}}
+{{- define "stocktrader.redis.password" -}}
+{{- if eq .Values.redis.type "internal" -}}
+{{- .Values.redis.auth.password | default "changeme" -}}
+{{- else -}}
+{{- .Values.redis.external.password -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get Redis URL with credentials
+Constructs redis://[password@]host:port format
+*/}}
+{{- define "stocktrader.redis.urlWithCredentials" -}}
+{{- $host := include "stocktrader.redis.host" . -}}
+{{- $port := include "stocktrader.redis.port" . -}}
+{{- $password := include "stocktrader.redis.password" . -}}
+{{- if $password -}}
+{{- printf "redis://:%s@%s:%s" $password $host $port -}}
+{{- else -}}
+{{- printf "redis://%s:%s" $host $port -}}
+{{- end -}}
+{{- end -}}

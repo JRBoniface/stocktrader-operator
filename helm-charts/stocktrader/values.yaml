@@ -175,9 +175,34 @@ mq:
   queue: NotificationQ
   channel: DEV.APP.SVRCONN
   url: <your mq url>
+
+# Redis configuration
+# Options are 'internal' to use the bundled Redis subchart, or 'external' to use an external Redis instance
+# https://github.com/bitnami/charts/tree/main/bitnami/redis
 redis:
-  urlWithCredentials: redis://<your credentials>@redistrader1-ibm-redis-ha-dev-master-svc:6379
+  enabled: true
+  type: internal
   cacheInterval: 60
+  external:
+    host: <your Redis host>
+    port: 6379
+    password: <your Redis password>
+    secretName: <your secret name>
+    # Set to true if using TLS/SSL
+    tls: false
+  # Redis subchart configuration (used when type: internal)
+  architecture: standalone
+  auth:
+    enabled: true
+    password: changeme
+  master:
+    service:
+      ports:
+        redis: 6379
+    persistence:
+      enabled: true
+      size: 2Gi
+
 openwhisk:
   id: <your id>
   password: <your password>
