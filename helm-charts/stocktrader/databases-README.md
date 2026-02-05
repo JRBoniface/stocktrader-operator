@@ -30,19 +30,19 @@ database:
 
 ### Liberty Server Configuration
 
-The Portfolio service uses OpenLiberty, which requires JDBC configuration to connect to PostgreSQL. This configuration is provided via ConfigMaps that are automatically selected based on your `database.type` setting:
+The Portfolio service uses OpenLiberty, which requires JDBC configuration to connect to PostgreSQL. This configuration is provided via a central ConfigMap (`portfolio-postgres-config`) that is automatically configured based on your `database.type` setting:
 
-- **Internal Database**: Uses `portfolio-postgres-internal-config` ConfigMap
+- **Internal Database** (`database.type: internal`):
   - Configures connection to the PostgreSQL Helm subchart service
   - Uses non-SSL connection (`sslMode=disable`)
   - Connects to service name: `<release-name>-postgresql`
 
-- **External Database**: Uses `portfolio-postgres-external-config` ConfigMap
+- **External Database** (`database.type: external`):
   - Configures connection to your external PostgreSQL server
   - Conditionally enables SSL based on `database.external.ssl` setting
   - Uses connection details from `database.external.*` values
 
-These ConfigMaps are mounted into the Portfolio pod at `/opt/ol/wlp/usr/servers/defaultServer/includes/postgres.xml` and contain the Liberty server datasource configuration.
+The ConfigMap is mounted into the Portfolio pod at `/opt/ol/wlp/usr/servers/defaultServer/includes/postgres.xml` and contains the Liberty server datasource configuration.
 
 ## Database Schema
 
@@ -172,7 +172,7 @@ postgresql:
 **How it works:**
 - The Bitnami PostgreSQL chart creates a StatefulSet with persistent storage
 - The init script in `values.yaml` automatically creates the required tables
-- The Portfolio service uses the `portfolio-postgres-internal-config` ConfigMap
+- The Portfolio service uses the `portfolio-postgres-config` ConfigMap
 - No manual database initialization is required
 
 **Service endpoint:** The PostgreSQL service is accessible within the cluster at `<release-name>-postgresql:5432`
