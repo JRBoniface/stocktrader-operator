@@ -1,11 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2025 Kyndryl
 # ----------------------------------------------------------------------------------
-# WAVE 3 — STOCK TRADER INSTANCE
+# WAVE 4 — STOCK TRADER INSTANCE
 # ----------------------------------------------------------------------------------
 # Creates the StockTrader CR that triggers the operator to deploy the application.
-# Applied last — after the operator is running (wave 2) and all prerequisites
+# Applied last — after the operator (wave 3) and all prerequisites
 # (CouchDB, ESO, credentials secret) are in place.
+#
+# SkipDryRunOnMissingResource=true prevents ArgoCD from failing the dry-run
+# validation when the StockTrader CRD is not yet fully established on the API
+# server immediately after the stocktrader-operator Application syncs. The retry
+# policy ensures re-attempts until the CRD is ready.
 #
 # The sample CR at stocktrader-operator/config/samples/operators_v1_stocktrader.yaml must be edited
 # to reflect your environment (database host, Redis URL, OIDC config, image tags)
@@ -31,5 +36,12 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        maxDuration: 5m
+        factor: 2
     syncOptions:
       - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true

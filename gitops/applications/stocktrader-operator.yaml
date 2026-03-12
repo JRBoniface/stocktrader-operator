@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2025 Kyndryl
 # ----------------------------------------------------------------------------------
-# WAVE 2 — STOCKTRADER OPERATOR
+# WAVE 3 — STOCKTRADER OPERATOR
 # ----------------------------------------------------------------------------------
 # Deploys the stocktrader operator manager, CRD, and RBAC via config/default.
-# Applied after ESO is Healthy (wave 1), ensuring the credentials secret
-# infrastructure is in place before the operator starts managing StockTrader CRs.
+# Applied after CouchDB is Healthy (wave 2), ensuring the database is running
+# before the operator starts managing StockTrader CRs.
 #
 # NOTE: This deploys the operator directly via Kustomize, bypassing OLM.
 #   For OLM-managed installation instead, replace 'path: stocktrader-operator/config/default' with
