@@ -6,17 +6,19 @@
 # Root Application that manages all child Applications using sync waves to enforce
 # deployment ordering:
 #
-#   Wave 0 — CouchDB Operator          (OLM Subscription)
-#   Wave 1 — External Secrets Operator (Helm + ClusterSecretStore)
-#   Wave 2 — Stocktrader Operator      (Kustomize / config/default)
-#   Wave 3 — Stock Trader Instance     (StockTrader CR)
+#   Wave 0 — External Secrets Operator  (Helm + ClusterSecretStore)
+#   Wave 1 — CouchDB Credentials        (ExternalSecret → Azure Key Vault)
+#   Wave 2 — CouchDB                    (Helm chart, uses credentials from wave 1)
+#   Wave 3 — Stocktrader Operator       (Kustomize / config/default)
+#   Wave 4 — Stock Trader Instance      (StockTrader CR)
 #
 # ArgoCD waits for each wave to reach Healthy before proceeding to the next.
 #
 # PREREQUISITES before applying this Application:
 #   1. ArgoCD installed on the cluster
-#   2. OLM installed on the cluster
-#   3. Terraform applied in the infrastructure repository
+#   2. Terraform applied in the infrastructure repository
+#   3. Azure Key Vault secrets populated (couchdb-admin-username, couchdb-admin-password,
+#      couchdb-cookie-auth-secret) — see platform-operators/couchdb/overlays/azure/externalsecret.yaml
 #   4. config.env values available to the cluster (see gitops/README.md)
 #
 # USAGE:

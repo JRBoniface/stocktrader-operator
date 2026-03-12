@@ -1,31 +1,22 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2025 Kyndryl
 # ----------------------------------------------------------------------------------
-# COUCHDB OPERATOR — AZURE OVERLAY
+# COUCHDB CREDENTIALS — AZURE OVERLAY
 # ----------------------------------------------------------------------------------
-# Targets AKS clusters running standard OLM (olm namespace).
-# The base defaults are correct for AKS — no patches required.
+# Deploys the ExternalSecret that materialises CouchDB admin credentials from
+# Azure Key Vault into the couchdb namespace.
 #
-# For OpenShift clusters, create an overlays/openshift/ directory and add:
+# This kustomization is the source for the 'couchdb-credentials' ArgoCD
+# Application (wave 0). The CouchDB Helm chart (wave 1) depends on this
+# Application being Healthy before it syncs.
 #
-#   patches:
-#     - target:
-#         kind: CatalogSource
-#         name: couchdb-operator-catalog
-#       patch: |-
-#         - op: replace
-#           path: /metadata/namespace
-#           value: openshift-marketplace
-#     - target:
-#         kind: Subscription
-#         name: couchdb-operator
-#       patch: |-
-#         - op: replace
-#           path: /spec/sourceNamespace
-#           value: openshift-marketplace
+# Required Azure Key Vault secrets (create before first sync):
+#   couchdb-admin-username
+#   couchdb-admin-password
+#   couchdb-cookie-auth-secret
 # ----------------------------------------------------------------------------------
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../../base
+  - externalsecret.yaml

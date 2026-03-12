@@ -25,6 +25,7 @@ resources:
   - ../../applications
 
 patches:
+  # Patch all Applications to point at the personal fork.
   - target:
       group: argoproj.io
       version: v1alpha1
@@ -36,3 +37,16 @@ patches:
       - op: replace
         path: /spec/source/targetRevision
         value: local-dependencies-extended
+  # couchdb-operator uses the Apache Helm chart — restore its repoURL and remove
+  # targetRevision (Helm charts use chart version, not a git revision).
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: couchdb-operator
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: https://apache.github.io/couchdb-helm
+      - op: remove
+        path: /spec/source/targetRevision
