@@ -33,3 +33,6 @@ patches:
       - op: replace
         path: /spec/source/repoURL
         value: https://github.com/JRBoniface/stocktrader-operator
+      - op: replace
+        path: /spec/source/targetRevision
+        value: local-dependencies-extended
