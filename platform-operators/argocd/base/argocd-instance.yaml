@@ -5,8 +5,10 @@
 # when ArgoCD syncs that Application.
 #
 # Apply only after the ArgoCD operator CSV reaches Succeeded:
-#   kubectl get csv -n argocd
-apiVersion: argoproj.io/v1alpha1
+#   kubectl wait --for=jsonpath='{.status.phase}'=Succeeded \
+#     csv/argocd-operator.v0.12.0 -n argocd --timeout=180s
+#   (or: kubectl get csv -n argocd -w)
+apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
 metadata:
   name: argocd

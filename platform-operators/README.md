@@ -65,11 +65,19 @@ platform-operators/
 ArgoCD must exist before it can manage the other operators. The full bootstrap sequence is:
 
 ```bash
-# Step 1 — Bootstrap ArgoCD via its operator
+# Step 1 — Install the ArgoCD operator via OLM
 kubectl apply -k platform-operators/argocd/overlays/azure
+
+# Wait for the CSV to reach Succeeded — this confirms the operator pod and its
+# conversion webhook are fully ready (CRD established alone is not sufficient)
+kubectl get csv -n argocd -w
+# When the STATUS column shows Succeeded, continue:
+
+# Step 2 — Create the ArgoCD instance
+kubectl apply -f platform-operators/argocd/base/argocd-instance.yaml
 kubectl wait --for=condition=Ready argocd/argocd -n argocd --timeout=300s
 
-# Step 2 — Hand control to ArgoCD (applies couchdb, ESO, stocktrader operator, instance)
+# Step 3 — Hand control to ArgoCD (applies couchdb, ESO, stocktrader operator, instance)
 kubectl apply -f gitops/app-of-apps.yaml
 ```
 

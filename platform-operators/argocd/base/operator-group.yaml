@@ -1,10 +1,10 @@
-# Scopes the ArgoCD operator to the argocd namespace.
-# Must be in the same namespace as the Subscription.
+# The ArgoCD operator only supports AllNamespaces install mode.
+# An OperatorGroup with no targetNamespaces enables AllNamespaces mode.
+# The operator pod will be deployed in the argocd namespace and will
+# watch all namespaces for ArgoCD CRs.
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: argocd-operator-group
   namespace: argocd
-spec:
-  targetNamespaces:
-    - argocd
+spec: {}

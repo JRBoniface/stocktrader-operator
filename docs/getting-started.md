@@ -87,7 +87,20 @@ ArgoCD must be installed before it can manage the remaining operators. Apply the
 kubectl apply -k platform-operators/argocd/overlays/azure
 ```
 
-Wait for the ArgoCD operator to reconcile and create the ArgoCD instance (this may take 2–5 minutes):
+Wait for the OLM CSV to reach `Succeeded`. This is the correct signal — it confirms the operator pod **and its conversion webhook** are fully running. Waiting only for the CRD to be established is not sufficient:
+
+```bash
+kubectl get csv -n argocd -w
+# Continue when STATUS = Succeeded
+```
+
+Now create the ArgoCD instance. This must be a separate apply — the `ArgoCD` CRD's conversion webhook must be running before the instance CR is submitted:
+
+```bash
+kubectl apply -f platform-operators/argocd/base/argocd-instance.yaml
+```
+
+Wait for ArgoCD to be fully ready (2–5 minutes):
 
 ```bash
 kubectl wait --for=condition=Ready argocd/argocd -n argocd --timeout=300s

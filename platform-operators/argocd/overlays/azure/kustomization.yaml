@@ -24,8 +24,10 @@
 #           path: /spec/sourceNamespace
 #           value: openshift-marketplace
 #
-# BOOTSTRAP USAGE:
+# BOOTSTRAP USAGE (two phases — must wait for CSV Succeeded before applying instance):
 #   kubectl apply -k platform-operators/argocd/overlays/azure
+#   kubectl get csv -n argocd -w   # wait for Succeeded
+#   kubectl apply -f platform-operators/argocd/base/argocd-instance.yaml
 #   kubectl wait --for=condition=Ready argocd/argocd -n argocd --timeout=300s
 #   kubectl apply -f gitops/app-of-apps.yaml
 # ----------------------------------------------------------------------------------
