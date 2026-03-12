@@ -33,7 +33,7 @@ spec:
   source:
     # Update this to your fork URL if not using the upstream repo
     repoURL: https://github.com/IBMStockTrader/stocktrader-operator
-    targetRevision: HEAD
+    targetRevision: local-dependencies-extended
     path: gitops/applications
   destination:
     server: https://kubernetes.default.svc
