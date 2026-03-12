@@ -31,10 +31,17 @@ metadata:
 spec:
   project: default
   source:
-    # Update this to your fork URL if not using the upstream repo
+    # UPSTREAM (default):
+    #   repoURL: https://github.com/IBMStockTrader/stocktrader-operator
+    #   path: gitops/applications
+    #
+    # PERSONAL FORK — two changes required:
+    #   1. Set repoURL to your fork below
+    #   2. Change path to gitops/overlays/fork
+    #      (the fork overlay patches all child Application repoURLs automatically)
     repoURL: https://github.com/JRBoniface/stocktrader-operator
     targetRevision: local-dependencies-extended
-    path: gitops/applications
+    path: gitops/overlays/fork
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

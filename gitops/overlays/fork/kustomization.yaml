@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# FORK OVERLAY
+# ----------------------------------------------------------------------------------
+# Overrides the repoURL on all child Applications to point at a personal fork.
+#
+# USAGE:
+#   1. Set the value in the patch below to your fork URL.
+#   2. In app-of-apps.yaml change:
+#        path: gitops/applications
+#      to:
+#        path: gitops/overlays/fork
+#   3. Also update the repoURL in app-of-apps.yaml itself to your fork URL.
+#   4. Commit and push both changes, then apply:
+#        kubectl apply -f gitops/app-of-apps.yaml
+#
+# The single patch below targets ALL argoproj.io/v1alpha1 Application resources
+# in this kustomization (all four child apps) — only one URL to maintain.
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../applications
+
+patches:
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: https://github.com/JRBoniface/stocktrader-operator
