@@ -46,3 +46,4 @@ resources:
   - catalog-source.yaml
   - operator-group.yaml
   - subscription.yaml
+  - cluster-role-binding.yaml

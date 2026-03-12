@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# ARGOCD CLUSTER-ADMIN BINDING
+# ----------------------------------------------------------------------------------
+# The ArgoCD application controller needs cluster-admin to:
+#   - Create and manage Namespaces for each wave (couchdb, stocktrader, etc.)
+#   - Deploy CRDs, ClusterRoles, and other cluster-scoped resources
+#
+# Without this, ArgoCD runs in "namespaced mode" and fails with:
+#   "cluster level Namespace X can not be managed when in namespaced mode"
+#
+# The service account name is prefixed with the ArgoCD instance name ("argocd-")
+# by the ArgoCD operator — hence "argocd-argocd-application-controller".
+# ----------------------------------------------------------------------------------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-application-controller-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: argocd-argocd-application-controller
+    namespace: argocd
