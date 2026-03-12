@@ -3,11 +3,14 @@
 # ----------------------------------------------------------------------------------
 # EXTERNAL SECRETS OPERATOR — OVERLAY
 # ----------------------------------------------------------------------------------
-# Extends the base with cluster-specific values sourced from config.env.
+# Extends the base with cluster-specific values sourced from eso-config.yaml.
 #
-# config.env is generated after 'terraform apply' in the infrastructure repo.
-# See config.env.example for all required keys and the generation command.
-# config.env is gitignored — never commit it.
+# eso-config.yaml is a committed ConfigMap containing infrastructure coordinates
+# (tenant ID, Key Vault URI, namespace names). These are not credentials — actual
+# secrets live in Azure Key Vault. The matching ConfigMap on the cluster is
+# provisioned by Terraform (providers/azure/modules/external_secrets).
+#
+# When infrastructure changes, update eso-config.yaml AND re-run terraform apply.
 # ----------------------------------------------------------------------------------
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -15,17 +18,11 @@ kind: Kustomization
 resources:
   - ../base
   - external-secret.yaml
+  - eso-config.yaml
 
-# Generates a ConfigMap from config.env to act as the replacement source.
-# disableNameSuffixHash ensures the name is stable for replacements below.
-configMapGenerator:
-  - name: eso-config
-    envs:
-      - config.env
-    options:
-      disableNameSuffixHash: true
-
-# Injects values from config.env into ClusterSecretStore and ExternalSecret fields.
+# Injects values from eso-config ConfigMap into ClusterSecretStore and ExternalSecret fields.
+# eso-config.yaml is committed to git so ArgoCD can render this overlay without a local
+# config.env file. The matching ConfigMap on the cluster is provisioned by Terraform.
 replacements:
   - source:
       kind: ConfigMap

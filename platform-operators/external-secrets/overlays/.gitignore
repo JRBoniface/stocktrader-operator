@@ -1,2 +1,2 @@
-# config.env contains Terraform output values — never commit
-config.env
+# config.env is no longer used — infrastructure values are committed in eso-config.yaml
+# and provisioned on the cluster by Terraform (providers/azure/modules/external_secrets).
