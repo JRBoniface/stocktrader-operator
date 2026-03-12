@@ -32,7 +32,7 @@ spec:
   project: default
   source:
     # Update this to your fork URL if not using the upstream repo
-    repoURL: https://github.com/IBMStockTrader/stocktrader-operator
+    repoURL: https://github.com/JRBoniface/stocktrader-operator
     targetRevision: local-dependencies-extended
     path: gitops/applications
   destination:
