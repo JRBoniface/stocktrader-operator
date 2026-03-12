@@ -1,13 +1,19 @@
-# Registers the CouchDB operator catalog with OLM.
-# Installed in the OLM namespace — not the couchdb namespace.
-# For OpenShift, the overlay patches this namespace to 'openshift-marketplace'.
+# The CouchDB operator is distributed via the OperatorHub community catalog.
+# OLM installs 'operatorhubio-catalog' (quay.io/operatorhubio/catalog:latest) by
+# default in the olm namespace — no custom CatalogSource is required.
+#
+# This file is intentionally excluded from kustomization.yaml.
+# It is kept here only as a reference / fallback in case the default
+# operatorhubio-catalog is absent from the cluster, in which case apply it
+# manually:
+#   kubectl apply -f platform-operators/couchdb/base/catalog-source.yaml
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: couchdb-operator-catalog
+  name: operatorhubio-catalog
   namespace: olm
 spec:
   sourceType: grpc
-  image: quay.io/couchdb/couchdb-operator-catalog:latest
-  displayName: CouchDB Operator Catalog
-  publisher: CouchDB
+  image: quay.io/operatorhubio/catalog:latest
+  displayName: Community Operators
+  publisher: OperatorHub.io

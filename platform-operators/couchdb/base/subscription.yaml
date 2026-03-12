@@ -9,6 +9,6 @@ metadata:
 spec:
   channel: stable
   name: couchdb-operator
-  source: couchdb-operator-catalog
+  source: operatorhubio-catalog
   sourceNamespace: olm
   installPlanApproval: Automatic
