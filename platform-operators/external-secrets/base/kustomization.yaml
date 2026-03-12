@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# EXTERNAL SECRETS OPERATOR — BASE
+# ----------------------------------------------------------------------------------
+# Installs the External Secrets Operator via Helm and creates the ClusterSecretStore
+# that connects to Azure Key Vault using Workload Identity.
+#
+# IMPORTANT: Apply in two phases to handle CRD ordering:
+#
+#   Phase 1 — Install ESO and wait for CRDs:
+#     kubectl apply -k platform-operators/external-secrets/overlays/azure --enable-helm
+#     kubectl wait --for=condition=established --timeout=120s \
+#       crd/clustersecretstores.external-secrets.io
+#
+#   Phase 2 — ClusterSecretStore is now safe to apply (re-apply same command):
+#     kubectl apply -k platform-operators/external-secrets/overlays/azure --enable-helm
+#
+# Prerequisites (Terraform must have run first):
+#   - ServiceAccount annotated with UAI client ID exists in ESO namespace
+#   - FederatedIdentityCredential exists on the UAI
+#   - config.env populated (see overlays/azure/config.env.example)
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: external-secrets
+    repo: https://charts.external-secrets.io
+    version: 0.14.0
+    releaseName: external-secrets
+    namespace: external-secrets
+    valuesFile: helm-values.yaml
+    includeCRDs: true
+
+resources:
+  - cluster-secret-store.yaml

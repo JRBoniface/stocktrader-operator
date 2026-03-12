@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# WAVE 3 — STOCK TRADER INSTANCE
+# ----------------------------------------------------------------------------------
+# Creates the StockTrader CR that triggers the operator to deploy the application.
+# Applied last — after the operator is running (wave 2) and all prerequisites
+# (CouchDB, ESO, credentials secret) are in place.
+#
+# The sample CR at stocktrader-operator/config/samples/operators_v1_stocktrader.yaml must be edited
+# to reflect your environment (database host, Redis URL, OIDC config, image tags)
+# before this Application is synced.
+# ----------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stocktrader-instance
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/IBMStockTrader/stocktrader-operator
+    targetRevision: HEAD
+    path: stocktrader-operator/config/samples
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stock-trader
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

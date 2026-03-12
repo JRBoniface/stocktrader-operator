@@ -1,0 +1,2 @@
+# config.env contains Terraform output values — never commit
+config.env

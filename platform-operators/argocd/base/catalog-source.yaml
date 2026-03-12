@@ -1,0 +1,14 @@
+# Registers the OperatorHub community operators catalog with OLM.
+# This catalog contains the ArgoCD operator (argocd-operator package).
+# Installed in the OLM namespace — not the argocd namespace.
+# For OpenShift, the overlay patches this namespace to 'openshift-marketplace'.
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: operatorhub-catalog
+  namespace: olm
+spec:
+  sourceType: grpc
+  image: quay.io/operatorhubio/catalog:latest
+  displayName: OperatorHub Community Operators
+  publisher: OperatorHub.io

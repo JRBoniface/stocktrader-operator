@@ -1,0 +1,13 @@
+# Registers the CouchDB operator catalog with OLM.
+# Installed in the OLM namespace — not the couchdb namespace.
+# For OpenShift, the overlay patches this namespace to 'openshift-marketplace'.
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: couchdb-operator-catalog
+  namespace: olm
+spec:
+  sourceType: grpc
+  image: quay.io/couchdb/couchdb-operator-catalog:latest
+  displayName: CouchDB Operator Catalog
+  publisher: CouchDB

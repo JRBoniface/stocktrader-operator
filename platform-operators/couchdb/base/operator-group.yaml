@@ -1,0 +1,10 @@
+# Scopes the CouchDB operator to the couchdb namespace.
+# Must be in the same namespace as the Subscription.
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: couchdb-operator-group
+  namespace: couchdb
+spec:
+  targetNamespaces:
+    - couchdb

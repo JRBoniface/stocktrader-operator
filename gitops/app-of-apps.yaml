@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# ARGOCD APP OF APPS — STOCK TRADER BOOTSTRAP
+# ----------------------------------------------------------------------------------
+# Root Application that manages all child Applications using sync waves to enforce
+# deployment ordering:
+#
+#   Wave 0 — CouchDB Operator          (OLM Subscription)
+#   Wave 1 — External Secrets Operator (Helm + ClusterSecretStore)
+#   Wave 2 — Stocktrader Operator      (Kustomize / config/default)
+#   Wave 3 — Stock Trader Instance     (StockTrader CR)
+#
+# ArgoCD waits for each wave to reach Healthy before proceeding to the next.
+#
+# PREREQUISITES before applying this Application:
+#   1. ArgoCD installed on the cluster
+#   2. OLM installed on the cluster
+#   3. Terraform applied in the infrastructure repository
+#   4. config.env values available to the cluster (see gitops/README.md)
+#
+# USAGE:
+#   Update repoURL below to match your fork, then:
+#   kubectl apply -f gitops/app-of-apps.yaml
+# ----------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stocktrader-bootstrap
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Update this to your fork URL if not using the upstream repo
+    repoURL: https://github.com/IBMStockTrader/stocktrader-operator
+    targetRevision: HEAD
+    path: gitops/applications
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# COUCHDB OPERATOR — BASE
+# ----------------------------------------------------------------------------------
+# Installs the CouchDB Operator via OLM (Operator Lifecycle Manager).
+# Resources are applied in dependency order:
+#   1. Namespace         — creates the couchdb namespace
+#   2. CatalogSource     — registers the CouchDB operator catalog with OLM (in olm ns)
+#   3. OperatorGroup     — scopes the operator to the couchdb namespace
+#   4. Subscription      — instructs OLM to install the CouchDB operator
+#
+# Usage:
+#   kubectl apply -k platform-operators/couchdb/overlays/azure
+#
+# Wait for the operator to be ready before creating CouchDBCluster CRs:
+#   kubectl wait --for=condition=established --timeout=120s \
+#     crd/couchdbclusters.couchdb.apache.org
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - catalog-source.yaml
+  - operator-group.yaml
+  - subscription.yaml

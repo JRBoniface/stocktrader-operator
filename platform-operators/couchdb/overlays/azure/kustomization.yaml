@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# COUCHDB OPERATOR — AZURE OVERLAY
+# ----------------------------------------------------------------------------------
+# Targets AKS clusters running standard OLM (olm namespace).
+# The base defaults are correct for AKS — no patches required.
+#
+# For OpenShift clusters, create an overlays/openshift/ directory and add:
+#
+#   patches:
+#     - target:
+#         kind: CatalogSource
+#         name: couchdb-operator-catalog
+#       patch: |-
+#         - op: replace
+#           path: /metadata/namespace
+#           value: openshift-marketplace
+#     - target:
+#         kind: Subscription
+#         name: couchdb-operator
+#       patch: |-
+#         - op: replace
+#           path: /spec/sourceNamespace
+#           value: openshift-marketplace
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base

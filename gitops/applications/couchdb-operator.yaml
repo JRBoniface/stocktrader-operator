@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# WAVE 0 — COUCHDB OPERATOR
+# ----------------------------------------------------------------------------------
+# Installs the CouchDB Operator via OLM. Applied first — no dependencies.
+# ArgoCD will wait for this Application to reach Healthy before wave 1 begins.
+# ----------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: couchdb-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/IBMStockTrader/stocktrader-operator
+    targetRevision: HEAD
+    path: platform-operators/couchdb/overlays/azure
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: couchdb
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

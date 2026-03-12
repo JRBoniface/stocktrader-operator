@@ -1,66 +1,169 @@
-# IBM Stock Trader operator
-This operator is intended to install all of the microservices from the IBM Stock Trader sample, and configure them to talk to services they require.
+# IBM Stock Trader Operator
 
-Note it does NOT install such prereqs, like DB2 or MQ - it just asks you to tell it how to connect to such services you already have - whether they be running in the same Kube cluster, or out in a public cloud. See the sibling [stocktrader-setup](https://github.com/IBMStockTrader/stocktrader-setp) repository for Terraform/OpenTofu scripts to set up the prereqs.
+A Kubernetes Operator that installs and configures the [IBM Stock Trader](https://github.com/IBMStockTrader) sample application. It is built with [Operator SDK](https://sdk.operatorframework.io/) (v1.40.0) using the Helm plugin, wrapping the umbrella Helm chart in `stocktrader-operator/helm-charts/stocktrader/`.
 
-It is a follow-on to the helm chart I created earlier, and described at https://medium.com/cloud-engagement-hub/using-an-umbrella-helm-chart-to-deploy-the-composite-ibm-stock-trader-sample-3b8b69af900d.
+The operator manages the full lifecycle of the Stock Trader microservices. It does not provision cloud infrastructure or install prerequisite operators — those concerns are handled separately (see [Prerequisites](#prerequisites) below).
 
-![Architecural Diagram](images/stock-trader.png)
+Originally created for IBM Cloud, the operator has been tested across AWS, Azure, and GCP.
 
-Initially created for IBM Cloud, we've since tested it in each of the major hyperscalers (AWS, Azure and GCP). Here's an example of a deployment to AWS: 
+![Architectural Diagram](images/stock-trader.png)
 
-![AWS-specific Diagram](images/stock-trader-aws.png)
+---
 
-This repository contains the results of using the Operator SDK to turn the umbrella helm chart (in the sibling `stocktrader-helm` repo - which must be built first, via `helm package stocktrader` in that repo) into a Kubernetes Operator.
-The SDK was installed to my Mac via `brew install operator-sdk`, which gave me v0.15.0.  I ran the following command to create the contents of this repo:
-```
-operator-sdk new stocktrader-operator --api-version=operators.ibm.com/v1 --kind StockTrader --type helm --helm-chart ../stocktrader-helm/stocktrader-1.3.0.tgz
-```
-Mostly I followed the instructions here: https://docs.openshift.com/container-platform/4.3/operators/operator_sdk/osdk-helm.html
+## Table of Contents
 
-The operator is built by going to the `stocktrader-operator` subdirectory and running the following command:
-```
-operator-sdk build stocktrader-operator
-```
-This produces a `stocktrader-operator:latest` Docker image, which I then pushed to the GitHub Container Registry via the following usual commands (if building yourself, you'll need to push to somewhere that you have authority, and will need to update the `operator.yaml` to reference that location):
-```
-docker tag stocktrader-operator:latest ghcr.io/ibmstocktrader/stocktrader-operator:latest
-docker push ghcr.io/ibmstocktrader/stocktrader-operator:latest
-```
-The results of building this repo are in GHCR, [here](https://github.com/IBMStockTrader/stocktrader-operator/pkgs/container/stocktrader-operator)
+- [IBM Stock Trader Operator](#ibm-stock-trader-operator)
+  - [Table of Contents](#table-of-contents)
+  - [Repository Structure](#repository-structure)
+  - [Documentation](#documentation)
+  - [Prerequisites](#prerequisites)
+  - [Installing the Stocktrader Operator](#installing-the-stocktrader-operator)
+  - [Deploying a Stock Trader Instance](#deploying-a-stock-trader-instance)
+  - [Accessing the Application](#accessing-the-application)
+  - [Development](#development)
 
-## Installing the Operator via the CLI
-The prequisites to the following commands require a Mac with Homebrew installed. It also assumes you are logged in to your cluster.
+---
 
-If your cluster does not have OLM already installed. You first need to install the Operator SDK using:
+## Repository Structure
+
 ```
-brew install operator-sdk
+stocktrader-operator/               # Root repository
+    stocktrader-operator/           # Operator core
+        helm-charts/stocktrader/    # Umbrella Helm chart for the Stock Trader application
+        config/                     # Operator SDK Kustomize config (CRD, RBAC, manager)
+        bundle/                     # OLM bundle manifests
+        catalog/                    # OLM catalog
+        catalog-source.yaml         # CatalogSource to register this operator with OLM
+        subscription.yaml           # Subscription to install this operator via OLM
+        watches.yaml                # Maps StockTrader CR to the Helm chart
+        Makefile                    # Build, bundle, and catalog targets
+    platform-operators/             # Kustomize manifests to install prerequisite operators
+        kustomization.yaml          # Root entry point — managed by ArgoCD after bootstrap
+        argocd/                     # ArgoCD Operator (bootstrap only — apply manually)
+        couchdb/                    # CouchDB Operator (OLM)
+        external-secrets/           # External Secrets Operator (Helm via Kustomize)
+        README.md                   # Full prerequisite installation documentation
+    gitops/                         # ArgoCD App of Apps (GitOps alternative to manual kustomize)
+        app-of-apps.yaml            # Root Application (sync waves 0–3)
+        applications/               # Individual Application manifests per wave
+    docs/                           # Detailed documentation
+    Makefile                        # Thin wrapper — delegates all targets to stocktrader-operator/
 ```
-Next, you need to run the following command to install OLM:
-```
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | System architecture, component diagram, secret flow, and GitOps ordering |
+| [docs/getting-started.md](docs/getting-started.md) | End-to-end guide from infrastructure provisioning to a running application |
+| [docs/configuration.md](docs/configuration.md) | Full `StockTrader` CR field reference, organised by section |
+| [docs/development.md](docs/development.md) | Build workflow, make targets, OLM bundle and catalog process |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Diagnostic commands and fixes for common problems |
+
+---
+
+## Prerequisites
+
+The following must be in place before deploying the operator:
+
+**1. Cloud infrastructure**
+Provision the required cloud resources (AKS/EKS/GKE, PostgreSQL, Redis, Key Vault, networking) using the [stocktrader-setup](https://github.com/IBMStockTrader/stocktrader-setup) repository. Terraform outputs from this step are required for ESO configuration in step 3.
+
+**2. OLM installed on the cluster**
+```bash
 operator-sdk olm install
 ```
-For futher details on installing OLM, refer to their [home page](https://olm.operatorframework.io/docs/getting-started/).
+For further details see the [OLM getting started guide](https://olm.operatorframework.io/docs/getting-started/).
 
-We then run the operator bundle using:
-```
-operator-sdk run bundle ghcr.io/ibmstocktrader/stocktrader-operator-bundle:v1.0.0
+**3. Prerequisite operators installed**
+CouchDB Operator and External Secrets Operator must be running before the Stock Trader application can function. See [platform-operators/README.md](platform-operators/README.md) for full instructions. In summary:
+
+Populate `platform-operators/external-secrets/overlays/config.env` from Terraform outputs, then:
+```bash
+# Phase 1 — install operators and CRDs
+kubectl apply -k platform-operators --enable-helm
+
+# Wait for CRDs
+kubectl wait --for=condition=established --timeout=120s crd/clustersecretstores.external-secrets.io
+kubectl wait --for=condition=established --timeout=120s crd/couchdbclusters.couchdb.apache.org
+
+# Phase 2 — apply ClusterSecretStore
+kubectl apply -k platform-operators --enable-helm
 ```
 
-Now you should have the OLM-enabled Stock Trader operator running in the cluster. With the operator, you can install an instance of Stock Trader using:
-```
-kubectl apply -f <Your Stocktrader CR Yaml>
-```
-An example of the CR yaml can be viewed [here](https://github.com/IBMStockTrader/stocktrader-operator/blob/master/config/samples/operators_v1_stocktrader.yaml).
+---
 
-The operator also automatically provisions a load balancer for trader. Use:
-```
-kubectl get svc
-```
-and copy the external IP endpoint with the name ending in `trader-service` to access the application.
+## Installing the Stocktrader Operator
 
-In a browser, enter the url in this format: `https://<trader-service-ip>:9443/trader`
+The operator is distributed via an OLM catalog hosted on GHCR. Apply the `CatalogSource` and `Subscription` from the repo root:
 
-The following page should pop up:
+```bash
+kubectl apply -f stocktrader-operator/catalog-source.yaml
+kubectl apply -f stocktrader-operator/subscription.yaml
+```
+
+Wait for the operator to be ready:
+```bash
+kubectl get csv -w
+```
+
+The CSV should reach `Succeeded` phase before proceeding.
+
+---
+
+## Deploying a Stock Trader Instance
+
+Once the operator is running, create a `StockTrader` CR to deploy the application. An annotated example is provided at [`stocktrader-operator/config/samples/operators_v1_stocktrader.yaml`](stocktrader-operator/config/samples/operators_v1_stocktrader.yaml).
+
+Edit the sample to match your environment (database host, Redis URL, OIDC configuration, etc.), then apply:
+
+```bash
+kubectl apply -f stocktrader-operator/config/samples/operators_v1_stocktrader.yaml
+```
+
+---
+
+## Accessing the Application
+
+The operator provisions a load balancer service for the Trader frontend. Retrieve the external IP:
+
+```bash
+kubectl get svc | grep trader-service
+```
+
+Access the application in a browser:
+```
+https://<trader-service-ip>:9443/trader
+```
+
 ![Login](images/Login.png)
-Congratulations, you have used the operator to install and configure and access the Stock Trader application!
+
+---
+
+## Development
+
+The Makefile provides all standard build targets. Run `make help` for the full list.
+
+**Build and push the operator image:**
+```bash
+make docker-build docker-push IMG=ghcr.io/ibmstocktrader/stocktrader-operator:v1.0.0
+```
+
+**Regenerate and validate the OLM bundle:**
+```bash
+make bundle
+```
+
+**Build and push the bundle image:**
+```bash
+make bundle-build bundle-push
+```
+
+**Build and push the catalog image:**
+```bash
+make catalog-build catalog-push
+```
+
+Built images are published to GHCR at [`ghcr.io/ibmstocktrader/stocktrader-operator`](https://github.com/IBMStockTrader/stocktrader-operator/pkgs/container/stocktrader-operator).

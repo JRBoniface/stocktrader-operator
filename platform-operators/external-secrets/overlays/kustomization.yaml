@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# EXTERNAL SECRETS OPERATOR — OVERLAY
+# ----------------------------------------------------------------------------------
+# Extends the base with cluster-specific values sourced from config.env.
+#
+# config.env is generated after 'terraform apply' in the infrastructure repo.
+# See config.env.example for all required keys and the generation command.
+# config.env is gitignored — never commit it.
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+  - external-secret.yaml
+
+# Generates a ConfigMap from config.env to act as the replacement source.
+# disableNameSuffixHash ensures the name is stable for replacements below.
+configMapGenerator:
+  - name: eso-config
+    envs:
+      - config.env
+    options:
+      disableNameSuffixHash: true
+
+# Injects values from config.env into ClusterSecretStore and ExternalSecret fields.
+replacements:
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.TENANT_ID
+    targets:
+      - select:
+          kind: ClusterSecretStore
+          name: azure-kv
+        fieldPaths:
+          - spec.provider.azurekv.tenantId
+
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.KEY_VAULT_URI
+    targets:
+      - select:
+          kind: ClusterSecretStore
+          name: azure-kv
+        fieldPaths:
+          - spec.provider.azurekv.vaultUrl
+
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.SERVICE_ACCOUNT_NAME
+    targets:
+      - select:
+          kind: ClusterSecretStore
+          name: azure-kv
+        fieldPaths:
+          - spec.provider.azurekv.serviceAccountRef.name
+
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.ESO_NAMESPACE
+    targets:
+      - select:
+          kind: ClusterSecretStore
+          name: azure-kv
+        fieldPaths:
+          - spec.provider.azurekv.serviceAccountRef.namespace
+
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.CREDENTIALS_SECRET_NAME
+    targets:
+      - select:
+          kind: ExternalSecret
+        fieldPaths:
+          - metadata.name
+          - spec.target.name
+
+  - source:
+      kind: ConfigMap
+      name: eso-config
+      fieldPath: data.STOCK_TRADER_NAMESPACE
+    targets:
+      - select:
+          kind: ExternalSecret
+        fieldPaths:
+          - metadata.namespace

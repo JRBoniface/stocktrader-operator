@@ -1,0 +1,14 @@
+# Instructs OLM to install the ArgoCD operator from the OperatorHub community catalog.
+# sourceNamespace must match the namespace in catalog-source.yaml.
+# For OpenShift, the overlay patches sourceNamespace to 'openshift-marketplace'.
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: argocd-operator
+  namespace: argocd
+spec:
+  channel: alpha
+  name: argocd-operator
+  source: operatorhub-catalog
+  sourceNamespace: olm
+  installPlanApproval: Automatic

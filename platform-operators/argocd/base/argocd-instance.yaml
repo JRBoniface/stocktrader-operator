@@ -1,0 +1,18 @@
+# ArgoCD instance created by the ArgoCD Operator.
+#
+# kustomizeBuildOptions enables --enable-helm, required for the ESO helmCharts
+# directive in platform-operators/external-secrets/base/kustomization.yaml to function
+# when ArgoCD syncs that Application.
+#
+# Apply only after the ArgoCD operator CSV reaches Succeeded:
+#   kubectl get csv -n argocd
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  kustomizeBuildOptions: "--enable-helm"
+  server:
+    service:
+      type: ClusterIP

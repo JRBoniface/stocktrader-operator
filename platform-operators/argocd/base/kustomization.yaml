@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# ARGOCD OPERATOR — BASE
+# ----------------------------------------------------------------------------------
+# Installs ArgoCD via the ArgoCD Operator (OLM) and creates an ArgoCD instance.
+#
+# BOOTSTRAP NOTE:
+#   ArgoCD must exist before it can manage other resources — this directory is
+#   therefore applied as a one-time bootstrap step BEFORE the gitops/ Applications
+#   are used. It is intentionally NOT included in platform-operators/kustomization.yaml
+#   (which ArgoCD itself will manage after bootstrapping).
+#
+# Apply order:
+#   1. kubectl apply -k platform-operators/argocd/overlays/azure   # bootstrap ArgoCD
+#   2. kubectl wait for ArgoCD instance to be Ready
+#   3. kubectl apply -f gitops/app-of-apps.yaml           # hand over to ArgoCD
+#
+# Resources applied:
+#   1. Namespace         — creates the argocd namespace
+#   2. CatalogSource     — registers OperatorHub community catalog with OLM
+#   3. OperatorGroup     — scopes the operator to the argocd namespace
+#   4. Subscription      — instructs OLM to install the ArgoCD operator
+#   5. ArgoCD instance   — creates the ArgoCD deployment via the operator CR
+#
+# Wait for ArgoCD to be ready before proceeding:
+#   kubectl wait --for=condition=Ready argocd/argocd -n argocd --timeout=300s
+# ----------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - catalog-source.yaml
+  - operator-group.yaml
+  - subscription.yaml
+  - argocd-instance.yaml
