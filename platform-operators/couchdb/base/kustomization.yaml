@@ -4,11 +4,15 @@
 # COUCHDB OPERATOR — BASE
 # ----------------------------------------------------------------------------------
 # Installs the CouchDB Operator via OLM (Operator Lifecycle Manager).
-# Resources are applied in dependency order:
-#   1. Namespace         — creates the couchdb namespace
-#   2. CatalogSource     — registers the CouchDB operator catalog with OLM (in olm ns)
-#   3. OperatorGroup     — scopes the operator to the couchdb namespace
-#   4. Subscription      — instructs OLM to install the CouchDB operator
+# Resources applied in dependency order:
+#   1. CatalogSource     — registers the CouchDB operator catalog with OLM (in olm ns)
+#   2. OperatorGroup     — scopes the operator to the couchdb namespace
+#   3. Subscription      — instructs OLM to install the CouchDB operator
+#
+# NOTE: The couchdb Namespace is pre-created in the ArgoCD bootstrap
+# (platform-operators/argocd/base/managed-namespaces.yaml) with the required
+# argocd.argoproj.io/managed-by label. It is intentionally excluded here because
+# ArgoCD in namespaced-mode cannot sync cluster-scoped Namespace resources.
 #
 # Usage:
 #   kubectl apply -k platform-operators/couchdb/overlays/azure
@@ -21,7 +25,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - namespace.yaml
   - catalog-source.yaml
   - operator-group.yaml
   - subscription.yaml

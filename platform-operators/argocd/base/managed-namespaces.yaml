@@ -42,3 +42,12 @@ metadata:
   name: stock-trader
   labels:
     argocd.argoproj.io/managed-by: argocd
+---
+# The olm namespace is created by OLM itself. We label it here so ArgoCD
+# can deploy CatalogSource resources into it (e.g. couchdb-operator-catalog).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: olm
+  labels:
+    argocd.argoproj.io/managed-by: argocd
