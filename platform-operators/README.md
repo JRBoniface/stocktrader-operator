@@ -78,7 +78,7 @@ kubectl apply -f platform-operators/argocd/base/argocd-instance.yaml
 kubectl wait --for=condition=Ready argocd/argocd -n argocd --timeout=300s
 
 # Step 3 — Hand control to ArgoCD (applies couchdb, ESO, stocktrader operator, instance)
-kubectl apply -f gitops/app-of-apps.yaml
+kubectl get secrets -n argocd -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
 ```
 
 After step 2, ArgoCD manages everything — `platform-operators/kustomization.yaml` is applied by ArgoCD, not manually.

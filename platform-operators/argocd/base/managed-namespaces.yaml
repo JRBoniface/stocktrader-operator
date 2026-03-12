@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# ARGOCD MANAGED NAMESPACES
+# ----------------------------------------------------------------------------------
+# The ArgoCD Operator creates a namespace-scoped ArgoCD instance by default.
+# It will only manage resources in namespaces that carry the label:
+#   argocd.argoproj.io/managed-by: argocd
+#
+# Without this label, ArgoCD rejects syncs to the target namespace with:
+#   "namespace X for <resource> is not managed"
+#
+# These namespaces are pre-created here (bootstrap phase) so the label is
+# present before any child Application tries to sync resources into them.
+# CreateNamespace=true in the ArgoCD Applications is a no-op for pre-created
+# namespaces and does NOT carry the label — hence this explicit pre-creation.
+# ----------------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: couchdb
+  labels:
+    argocd.argoproj.io/managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-secrets
+  labels:
+    argocd.argoproj.io/managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stocktrader-operator-system
+  labels:
+    argocd.argoproj.io/managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stock-trader
+  labels:
+    argocd.argoproj.io/managed-by: argocd
