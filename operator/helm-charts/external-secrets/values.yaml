@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# EXTERNAL SECRETS OPERATOR — Helm Values
+# ----------------------------------------------------------------------------------
+# Chart:   https://charts.external-secrets.io
+# Version: 0.14.0
+#
+# Install:
+#   helm repo add external-secrets https://charts.external-secrets.io
+#   helm repo update
+#   helm upgrade --install external-secrets external-secrets/external-secrets \
+#     --namespace external-secrets --create-namespace \
+#     --version 0.14.0 \
+#     -f helm-charts/external-secrets/values.yaml
+# ----------------------------------------------------------------------------------
+installCRDs: true
+
+webhook:
+  networkPolicy:
+    enabled: false
+
+certController:
+  enabled: true

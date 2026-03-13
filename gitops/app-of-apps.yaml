@@ -6,20 +6,24 @@
 # Root Application that manages all child Applications using sync waves to enforce
 # deployment ordering:
 #
-#   Wave 0 — External Secrets Operator  (Helm + ClusterSecretStore)
-#   Wave 1 — CouchDB Credentials        (ExternalSecret → Azure Key Vault)
-#   Wave 2 — CouchDB                    (Helm chart, uses credentials from wave 1)
-#   Wave 3 — Stocktrader Operator       (Kustomize / config/default)
-#   Wave 4 — Stock Trader Instance      (StockTrader CR)
+#   Wave 0 — External Secrets Operator  (Helm chart — installs CRDs + operator)
+#   Wave 1 — Stocktrader Operator       (Kustomize / config/default)
+#   Wave 2 — Stock Trader Instance      (StockTrader CR)
 #
 # ArgoCD waits for each wave to reach Healthy before proceeding to the next.
 #
+# NOTE: CouchDB is deployed as a standalone Helm release outside of ArgoCD.
+# See operator/helm-charts/couchdb/README.md for installation instructions.
+# CouchDB credentials (ExternalSecret) must be applied manually before deploying CouchDB.
+# See operator/helm-charts/external-secrets/README.md.
+#
 # PREREQUISITES before applying this Application:
 #   1. ArgoCD installed on the cluster
-#   2. Terraform applied in the infrastructure repository
-#   3. Azure Key Vault secrets populated (couchdb-admin-username, couchdb-admin-password,
-#      couchdb-cookie-auth-secret) — see platform-operators/couchdb/overlays/azure/externalsecret.yaml
-#   4. config.env values available to the cluster (see gitops/README.md)
+#   2. Terraform applied in the infrastructure repository (or az CLI equivalent)
+#   3. ESO post-install manifests applied manually (ServiceAccount, ClusterSecretStore,
+#      stock-trader ExternalSecret) — see operator/helm-charts/external-secrets/README.md
+#      These are applied once before the first ArgoCD sync and are not managed by ArgoCD.
+#   4. CouchDB deployed via Helm — see operator/helm-charts/couchdb/README.md
 #
 # USAGE:
 #   Update repoURL below to match your fork, then:

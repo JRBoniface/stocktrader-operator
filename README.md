@@ -1,6 +1,6 @@
 # IBM Stock Trader Operator
 
-A Kubernetes Operator that installs and configures the [IBM Stock Trader](https://github.com/IBMStockTrader) sample application. It is built with [Operator SDK](https://sdk.operatorframework.io/) (v1.40.0) using the Helm plugin, wrapping the umbrella Helm chart in `stocktrader-operator/helm-charts/stocktrader/`.
+A Kubernetes Operator that installs and configures the [IBM Stock Trader](https://github.com/IBMStockTrader) sample application. It is built with [Operator SDK](https://sdk.operatorframework.io/) (v1.40.0) using the Helm plugin, wrapping the umbrella Helm chart in `operator/helm-charts/stocktrader/`.
 
 The operator manages the full lifecycle of the Stock Trader microservices. It does not provision cloud infrastructure or install prerequisite operators — those concerns are handled separately (see [Prerequisites](#prerequisites) below).
 
@@ -28,8 +28,11 @@ Originally created for IBM Cloud, the operator has been tested across AWS, Azure
 
 ```
 stocktrader-operator/               # Root repository
-    stocktrader-operator/           # Operator core
-        helm-charts/stocktrader/    # Umbrella Helm chart for the Stock Trader application
+    operator/           # Operator core
+        helm-charts/
+            stocktrader/            # Umbrella Helm chart for the Stock Trader application
+            external-secrets/       # ESO Helm values + post-install instructions
+            couchdb/                # CouchDB Helm values + install instructions
         config/                     # Operator SDK Kustomize config (CRD, RBAC, manager)
         bundle/                     # OLM bundle manifests
         catalog/                    # OLM catalog
@@ -37,17 +40,14 @@ stocktrader-operator/               # Root repository
         subscription.yaml           # Subscription to install this operator via OLM
         watches.yaml                # Maps StockTrader CR to the Helm chart
         Makefile                    # Build, bundle, and catalog targets
-    platform-operators/             # Kustomize manifests to install prerequisite operators
-        kustomization.yaml          # Root entry point — managed by ArgoCD after bootstrap
-        argocd/                     # ArgoCD Operator (bootstrap only — apply manually)
-        couchdb/                    # CouchDB Operator (OLM)
-        external-secrets/           # External Secrets Operator (Helm via Kustomize)
-        README.md                   # Full prerequisite installation documentation
-    gitops/                         # ArgoCD App of Apps (GitOps alternative to manual kustomize)
-        app-of-apps.yaml            # Root Application (sync waves 0–3)
-        applications/               # Individual Application manifests per wave
+    platform-operators/             # ArgoCD bootstrap manifests (applied once, manually)
+        argocd/                     # ArgoCD Operator (OLM) + ArgoCD instance
+        README.md                   # Full bootstrap sequence
+    gitops/                         # ArgoCD App of Apps (GitOps)
+        app-of-apps.yaml            # Root Application
+        applications/               # Individual Application manifests
     docs/                           # Detailed documentation
-    Makefile                        # Thin wrapper — delegates all targets to stocktrader-operator/
+    Makefile                        # Thin wrapper — delegates all targets to operator/
 ```
 
 ---
@@ -69,29 +69,22 @@ stocktrader-operator/               # Root repository
 The following must be in place before deploying the operator:
 
 **1. Cloud infrastructure**
-Provision the required cloud resources (AKS/EKS/GKE, PostgreSQL, Redis, Key Vault, networking) using the [stocktrader-setup](https://github.com/IBMStockTrader/stocktrader-setup) repository. Terraform outputs from this step are required for ESO configuration in step 3.
+Provision the required cloud resources (AKS/EKS/GKE, PostgreSQL, Redis, Key Vault, networking) using the [stocktrader-setup](https://github.com/IBMStockTrader/stocktrader-setup) repository.
 
 **2. OLM installed on the cluster**
 ```bash
-operator-sdk olm install
+curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/latest/download/install.sh | bash -s <version>
 ```
 For further details see the [OLM getting started guide](https://olm.operatorframework.io/docs/getting-started/).
 
-**3. Prerequisite operators installed**
-CouchDB Operator and External Secrets Operator must be running before the Stock Trader application can function. See [platform-operators/README.md](platform-operators/README.md) for full instructions. In summary:
+**3. External Secrets Operator installed**
+ESO syncs secrets from Azure Key Vault to Kubernetes. See [operator/helm-charts/external-secrets/README.md](operator/helm-charts/external-secrets/README.md) for the full install guide including Workload Identity setup and post-install manifests.
 
-Populate `platform-operators/external-secrets/overlays/config.env` from Terraform outputs, then:
-```bash
-# Phase 1 — install operators and CRDs
-kubectl apply -k platform-operators --enable-helm
+**4. CouchDB installed**
+See [operator/helm-charts/couchdb/README.md](operator/helm-charts/couchdb/README.md).
 
-# Wait for CRDs
-kubectl wait --for=condition=established --timeout=120s crd/clustersecretstores.external-secrets.io
-kubectl wait --for=condition=established --timeout=120s crd/couchdbclusters.couchdb.apache.org
-
-# Phase 2 — apply ClusterSecretStore
-kubectl apply -k platform-operators --enable-helm
-```
+**5. ArgoCD bootstrapped** (GitOps path only)
+See [platform-operators/README.md](platform-operators/README.md) for the full bootstrap sequence.
 
 ---
 
@@ -100,8 +93,8 @@ kubectl apply -k platform-operators --enable-helm
 The operator is distributed via an OLM catalog hosted on GHCR. Apply the `CatalogSource` and `Subscription` from the repo root:
 
 ```bash
-kubectl apply -f stocktrader-operator/catalog-source.yaml
-kubectl apply -f stocktrader-operator/subscription.yaml
+kubectl apply -f operator/catalog-source.yaml
+kubectl apply -f operator/subscription.yaml
 ```
 
 Wait for the operator to be ready:
@@ -115,12 +108,12 @@ The CSV should reach `Succeeded` phase before proceeding.
 
 ## Deploying a Stock Trader Instance
 
-Once the operator is running, create a `StockTrader` CR to deploy the application. An annotated example is provided at [`stocktrader-operator/config/samples/operators_v1_stocktrader.yaml`](stocktrader-operator/config/samples/operators_v1_stocktrader.yaml).
+Once the operator is running, create a `StockTrader` CR to deploy the application. An annotated example is provided at [`operator/config/samples/operators_v1_stocktrader.yaml`](operator/config/samples/operators_v1_stocktrader.yaml).
 
 Edit the sample to match your environment (database host, Redis URL, OIDC configuration, etc.), then apply:
 
 ```bash
-kubectl apply -f stocktrader-operator/config/samples/operators_v1_stocktrader.yaml
+kubectl apply -f operator/config/samples/operators_v1_stocktrader.yaml
 ```
 
 ---

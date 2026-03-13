@@ -31,7 +31,7 @@ The Stock Trader application is a microservices sample demonstrating cloud-nativ
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                                                                            │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ stocktrader-operator/                                                │  │
+│  │ operator/                                                │  │
 │  │                                                                      │  │
 │  │  ┌──────────────────────────────────┐                                │  │
 │  │  │  StockTrader Operator            │                                │  │

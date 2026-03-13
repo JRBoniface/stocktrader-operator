@@ -8,9 +8,9 @@
 # before the operator starts managing StockTrader CRs.
 #
 # NOTE: This deploys the operator directly via Kustomize, bypassing OLM.
-#   For OLM-managed installation instead, replace 'path: stocktrader-operator/config/default' with
+#   For OLM-managed installation instead, replace 'path: operator/config/default' with
 #   a path pointing to the CatalogSource + Subscription manifests.
-#   See stocktrader-operator/catalog-source.yaml and stocktrader-operator/subscription.yaml for reference.
+#   See operator/catalog-source.yaml and operator/subscription.yaml for reference.
 # ----------------------------------------------------------------------------------
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -24,7 +24,7 @@ spec:
   source:
     repoURL: https://github.com/IBMStockTrader/stocktrader-operator
     targetRevision: HEAD
-    path: stocktrader-operator/config/default
+    path: operator/config/default
   destination:
     server: https://kubernetes.default.svc
     # namespace intentionally omitted — the kustomize 'namespace: stocktrader-operator-system'

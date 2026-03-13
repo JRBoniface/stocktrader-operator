@@ -2,7 +2,7 @@
 
 This directory contains an ArgoCD [App of Apps](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/) configuration that deploys the full Stock Trader stack using sync waves to enforce ordering.
 
-This is an **alternative to the manual Kustomize approach** documented in [platform-operators/README.md](../platform-operators/README.md). The existing `platform-operators/`, `stocktrader-operator/config/`, and `stocktrader-operator/helm-charts/` directories are unchanged — this directory only adds the ArgoCD Application manifests that point to them.
+This is an **alternative to the manual Kustomize approach** documented in [platform-operators/README.md](../platform-operators/README.md). The existing `platform-operators/`, `operator/config/`, and `operator/helm-charts/` directories are unchanged — this directory only adds the ArgoCD Application manifests that point to them.
 
 ---
 
@@ -12,8 +12,8 @@ This is an **alternative to the manual Kustomize approach** documented in [platf
 |---|---|---|---|
 | 0 | `couchdb-operator` | `platform-operators/couchdb/overlays/azure` | — |
 | 1 | `external-secrets-operator` | `platform-operators/external-secrets/overlays` | Wave 0 Healthy |
-| 2 | `stocktrader-operator` | `stocktrader-operator/config/default` | Wave 1 Healthy |
-| 3 | `stocktrader-instance` | `stocktrader-operator/config/samples` | Wave 2 Healthy |
+| 2 | `stocktrader-operator` | `operator/config/default` | Wave 1 Healthy |
+| 3 | `stocktrader-instance` | `operator/config/samples` | Wave 2 Healthy |
 
 ArgoCD waits for each wave to reach `Healthy` before applying the next.
 
@@ -78,4 +78,4 @@ If the infrastructure repo is private and access-controlled, `config.env` can be
 The `ClusterSecretStore` CRD is installed by the ESO Helm chart in wave 1. The first sync will report a partial error for the `ClusterSecretStore` object as the CRD does not yet exist. The `retry` policy on `external-secrets-operator.yaml` (5 retries, 30s backoff) resolves this automatically on the second attempt. This is expected on first install only.
 
 **OLM vs. direct install for stocktrader-operator**
-Wave 2 deploys the stocktrader operator via `stocktrader-operator/config/default` directly, bypassing OLM. If OLM-managed installation is preferred, replace the `path` in `gitops/applications/stocktrader-operator.yaml` with a path pointing to a `CatalogSource` + `Subscription` manifest. The `stocktrader-operator/catalog-source.yaml` and `stocktrader-operator/subscription.yaml` can be used as a reference.
+Wave 2 deploys the stocktrader operator via `operator/config/default` directly, bypassing OLM. If OLM-managed installation is preferred, replace the `path` in `gitops/applications/stocktrader-operator.yaml` with a path pointing to a `CatalogSource` + `Subscription` manifest. The `operator/catalog-source.yaml` and `operator/subscription.yaml` can be used as a reference.

@@ -1,8 +1,8 @@
 # StockTrader CR Configuration Reference
 
-The `StockTrader` custom resource controls every aspect of the deployed application. All fields map directly to Helm values in `stocktrader-operator/helm-charts/stocktrader/`. This document describes each section.
+The `StockTrader` custom resource controls every aspect of the deployed application. All fields map directly to Helm values in `operator/helm-charts/stocktrader/`. This document describes each section.
 
-The full annotated sample is at [`stocktrader-operator/config/samples/operators_v1_stocktrader.yaml`](../stocktrader-operator/config/samples/operators_v1_stocktrader.yaml).
+The full annotated sample is at [`operator/config/samples/operators_v1_stocktrader.yaml`](../operator/config/samples/operators_v1_stocktrader.yaml).
 
 ---
 

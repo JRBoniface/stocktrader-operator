@@ -12,14 +12,14 @@ How to build, test, and publish the stocktrader operator and its OLM bundle/cata
 | `kustomize` | ≥ 5.0 | Apply config overlays |
 | `opm` | ≥ 1.28 | Build OLM file-based catalogs |
 
-All build tooling that can be downloaded automatically is placed in `stocktrader-operator/bin/` by the corresponding make targets.
+All build tooling that can be downloaded automatically is placed in `operator/bin/` by the corresponding make targets.
 
 ---
 
 ## Repository layout (operator core)
 
 ```
-stocktrader-operator/
+operator/
     Makefile              # All build targets — run from here or the repo root
     Dockerfile            # Operator manager image
     bundle.Dockerfile     # OLM bundle image
@@ -66,7 +66,7 @@ make docker-build docker-push
 
 ## Make targets
 
-All targets can be run from the repository root (the thin `Makefile` delegates to `stocktrader-operator/Makefile`) or from within `stocktrader-operator/` directly.
+All targets can be run from the repository root (the thin `Makefile` delegates to `operator/Makefile`) or from within `operator/` directly.
 
 ### Development
 
@@ -116,7 +116,7 @@ make install
 make run IMG=<any-image>  # IMG is used for the CSV but not needed for run
 
 # 3. In a separate terminal, apply a test CR
-kubectl apply -f stocktrader-operator/config/samples/operators_v1_stocktrader.yaml
+kubectl apply -f operator/config/samples/operators_v1_stocktrader.yaml
 
 # 4. Modify helm-charts/stocktrader/, then kill and restart: make run
 ```
@@ -155,7 +155,7 @@ make bundle-build bundle-push BUNDLE_IMG=${BUNDLE_IMG}
 
 ### 2. Update the catalog
 
-Edit `stocktrader-operator/catalog/operator.yaml` to add the new bundle entry, then build and push the catalog image:
+Edit `operator/catalog/operator.yaml` to add the new bundle entry, then build and push the catalog image:
 
 ```bash
 CATALOG_IMG=ghcr.io/myorg/stocktrader-operator-catalog:latest
@@ -164,11 +164,11 @@ make catalog-build catalog-push CATALOG_IMG=${CATALOG_IMG}
 
 ### 3. Apply the CatalogSource and Subscription
 
-Update the image reference in `stocktrader-operator/catalog-source.yaml` to point to your catalog image, then apply:
+Update the image reference in `operator/catalog-source.yaml` to point to your catalog image, then apply:
 
 ```bash
-kubectl apply -f stocktrader-operator/catalog-source.yaml
-kubectl apply -f stocktrader-operator/subscription.yaml
+kubectl apply -f operator/catalog-source.yaml
+kubectl apply -f operator/subscription.yaml
 ```
 
 OLM will install the latest operator version from the catalog into the `stocktrader-operator-system` namespace.

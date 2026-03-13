@@ -179,7 +179,7 @@ Common causes:
 2. **Helm rendering error** — invalid value in the CR spec.
    ```bash
    # Test Helm rendering locally
-   helm template test stocktrader-operator/helm-charts/stocktrader/ -f <your-values.yaml>
+   helm template test operator/helm-charts/stocktrader/ -f <your-values.yaml>
    ```
 
 3. **Image pull failure** — the application service images cannot be pulled.

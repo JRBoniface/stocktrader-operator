@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  CREDENTIALS_SECRET_NAME: stock-trader-secret-credentials
+  ESO_NAMESPACE: external-secrets
+  KEY_VAULT_URI: https://kv-stocktrader-jb-dev.vault.azure.net/
+  SERVICE_ACCOUNT_NAME: eso-wi
+  STOCK_TRADER_NAMESPACE: stock-trader
+  TENANT_ID: 147e32ab-2b66-4f09-b4d8-f98e9d3349ae
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"CREDENTIALS_SECRET_NAME":"stock-trader-secret-credentials","ESO_NAMESPACE":"external-secrets","KEY_VAULT_URI":"https://kv-stocktrader-jb-dev.vault.azure.net/","SERVICE_ACCOUNT_NAME":"eso-wi","STOCK_TRADER_NAMESPACE":"stock-trader","TENANT_ID":"147e32ab-2b66-4f09-b4d8-f98e9d3349ae"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"eso-config","namespace":"external-secrets"}}
+  creationTimestamp: "2026-03-12T18:21:18Z"
+  name: eso-config
+  namespace: external-secrets
+  resourceVersion: "65237784"
+  uid: 2ea6ccf5-f22a-44a4-9c25-99c7cb3034d4

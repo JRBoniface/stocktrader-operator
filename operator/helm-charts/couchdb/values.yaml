@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2025 Kyndryl
+# ----------------------------------------------------------------------------------
+# COUCHDB — Helm Values
+# ----------------------------------------------------------------------------------
+# Chart:   https://apache.github.io/couchdb-helm
+# Version: 4.6.3 (CouchDB 3.5.1)
+#
+# Install:
+#   helm repo add apache-couchdb https://apache.github.io/couchdb-helm
+#   helm repo update
+#   helm upgrade --install couchdb apache-couchdb/couchdb \
+#     --namespace couchdb --create-namespace \
+#     --version 4.6.3 \
+#     -f helm-charts/couchdb/values.yaml
+#
+# NOTE: The 'couchdb-credentials' Secret must exist in the couchdb namespace
+# before installing. See the External Secrets section of this README or
+# helm-charts/external-secrets/README.md for how to provision it via ESO.
+#
+# Future: This chart is planned as a dependency of the stocktrader umbrella
+# chart (helm-charts/stocktrader/Chart.yaml). When promoted, these values
+# will move into stocktrader/values.yaml under a 'couchdb:' key.
+# ----------------------------------------------------------------------------------
+clusterSize: 1
+
+persistentVolume:
+  enabled: true
+  size: 10Gi
+
+# Credentials are managed externally via ESO (ExternalSecret → Azure Key Vault).
+# The Secret 'couchdb-credentials' must exist before install.
+# See helm-charts/external-secrets/README.md — "CouchDB Credentials" section.
+createAdminSecret: false
+extraSecretName: couchdb-credentials

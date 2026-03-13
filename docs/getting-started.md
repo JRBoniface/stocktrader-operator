@@ -168,7 +168,7 @@ kubectl get applications -n argocd
 
 ## Step 8 — Configure the StockTrader CR
 
-The sample CR at [`stocktrader-operator/config/samples/operators_v1_stocktrader.yaml`](../stocktrader-operator/config/samples/operators_v1_stocktrader.yaml) contains default placeholder values. Before wave 3 successfully reconciles, edit it to match your environment:
+The sample CR at [`operator/config/samples/operators_v1_stocktrader.yaml`](../operator/config/samples/operators_v1_stocktrader.yaml) contains default placeholder values. Before wave 3 successfully reconciles, edit it to match your environment:
 
 Key fields to set:
 
@@ -228,10 +228,10 @@ kubectl wait --for=condition=established --timeout=120s crd/couchdbclusters.couc
 kubectl apply -k platform-operators --enable-helm
 
 # Step 2 — Deploy the stocktrader operator
-kubectl apply -k stocktrader-operator/config/default
+kubectl apply -k operator/config/default
 
 # Step 3 — Apply the StockTrader instance
-kubectl apply -f stocktrader-operator/config/samples/operators_v1_stocktrader.yaml
+kubectl apply -f operator/config/samples/operators_v1_stocktrader.yaml
 ```
 
 ---

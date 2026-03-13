@@ -12,7 +12,7 @@
 # server immediately after the stocktrader-operator Application syncs. The retry
 # policy ensures re-attempts until the CRD is ready.
 #
-# The sample CR at stocktrader-operator/config/samples/operators_v1_stocktrader.yaml must be edited
+# The sample CR at operator/config/samples/operators_v1_stocktrader.yaml must be edited
 # to reflect your environment (database host, Redis URL, OIDC config, image tags)
 # before this Application is synced.
 # ----------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ spec:
   source:
     repoURL: https://github.com/IBMStockTrader/stocktrader-operator
     targetRevision: HEAD
-    path: stocktrader-operator/config/samples
+    path: operator/config/samples
   destination:
     server: https://kubernetes.default.svc
     namespace: stock-trader
